@@ -1,42 +1,39 @@
-import { useState } from "react";
-import QuestionTreeNavigation from "./QuestionTreeNavigation";
-import QuestionEditor from "./QuestionEditor";
-import { getItem, getType } from "../utils/treeUtils";
 import { Divider } from "antd";
-import { types } from "../constants/types";
-
-function PolymorphicEditor({ value, setValue, path, setPath }) {
-  const type = getType(value);
-  if (type === types.QUESTION) {
-    return (
-      <QuestionEditor
-        value={value}
-        setValue={setValue}
-        path={path}
-        setPath={setPath}
-      />
-    );
-  }
-}
+import { useState } from "react";
+import { copyItemWithChange, getParentItem } from '../utils/treeUtils';
+import NextStepEditor from './NextStepEditor';
+import QuestionEditor from "./QuestionEditor";
+import QuestionTreeNavigation from "./QuestionTreeNavigation";
 
 export default function QuestionTreeBuilder() {
   const [path, setPath] = useState([]);
   const [value, setValue] = useState({ type: "question" });
 
-  console.log(value);
-  const item = getItem(value, path);
-  console.log(`'${path.join("/")}' -> `, item);
+  console.log('ROOT VALUE', value);
+  const item = path.length===0 ? value : getParentItem(value, path)?.nextStep;
+  console.log(`ITEM ('${path.join("/")}'): `, item);
+
+  const setItem = val => setValue(copyItemWithChange(value, path, val));
 
   return (
     <div>
       <QuestionTreeNavigation path={path} setPath={setPath} rootValue={value} />
       <Divider type="horizontal" />
-      <QuestionEditor
-        value={value}
-        setValue={setValue}
-        path={path}
-        setPath={setPath}
-      />
+      {path.length === 0 ? (
+        <QuestionEditor
+          value={item}
+          setValue={setItem}
+          path={path}
+          setPath={setPath}
+        />
+      ) : (
+        <NextStepEditor
+          value={item}
+          setValue={setItem}
+          path={path}
+          setPath={setPath}
+        />
+      )}
     </div>
   );
 }

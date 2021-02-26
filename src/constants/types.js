@@ -3,6 +3,7 @@ export const types = {
   ANSWER: "answer",
   CONDITIONAL: "conditional",
   CONDITION: "condition",
+  RESULT: "result",
   DOCUMENT: "document",
 };
 

@@ -1,11 +1,11 @@
-import { find, isArray, property } from "lodash";
+import { find, isArray, merge, property } from "lodash";
 import { types, questionSubtypes } from "../constants/types";
 
 export function getText(item) {
   return item.text;
 }
 
-export function getItem(rootValue, path) {
+export function getParentItem(rootValue, path) {
   let currentItem = rootValue;
   let remainingPath = path;
 
@@ -47,6 +47,16 @@ export function getClickablePath(item, path, acc = [], pathAcc = []) {
   return [];
 }
 
+export function copyItemWithChange(rootValue, path, value) {
+  if (path.length === 0) {
+    return value;
+  }
+  const copy = merge({}, rootValue);
+  const parentItem = getParentItem(copy, path);
+  parentItem.nextStep = value;
+  return copy;
+}
+
 export function getChild(item, text) {
   const children = getChildren(item);
   return find(children, (ch) => ch.text === text);
@@ -58,9 +68,7 @@ export function getChildren(item) {
   }
   const type = getType(item);
   if (type.mainType === types.QUESTION) {
-    return type.subtype === questionSubtypes.CHOICE
-      ? item.answers
-      : [item.nextStep];
+    return type.subtype === questionSubtypes.CHOICE ? item.answers : [item];
   }
   if (type.mainType === types.CONDITIONAL) {
     return item.conditions.map(property("body"));
