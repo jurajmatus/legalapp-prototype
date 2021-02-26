@@ -1,14 +1,21 @@
 import { Form } from "antd";
+import { useEffect } from "react";
 import { types } from "../constants/types";
 import QuestionEditor from "./QuestionEditor";
 import { RadioGroup } from "./RadioGroup";
 
 export default function NextStepEditor({ value, setValue, path, setPath }) {
+  const [form] = Form.useForm();
+  useEffect(() => {
+    form.setFieldsValue(value);
+  }, [form, value]);
+
   return (
     <Form
       component={false}
       onValuesChange={(ch, all) => setValue(all)}
-      initialValues={value}
+      form={form}
+      name={path}
     >
       <Form.Item name="nextStepType" label="Next step type">
         <RadioGroup
@@ -34,6 +41,7 @@ export default function NextStepEditor({ value, setValue, path, setPath }) {
           if (type === types.QUESTION) {
             return (
               <QuestionEditor
+                key={path}
                 value={value}
                 setValue={setValue}
                 path={path}

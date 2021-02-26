@@ -1,4 +1,5 @@
 import { Form, Input } from "antd";
+import { useEffect } from "react";
 import { questionSubtypes, types } from "../constants/types";
 import { parseType } from "../utils/treeUtils";
 import ChoiceQuestionEditorFragment from "./ChoiceQuestionEditorFragment";
@@ -6,11 +7,18 @@ import { RadioGroup } from "./RadioGroup";
 import YesNoQuestionEditorFragment from "./YesNoQuestionEditorFragment";
 
 export default function QuestionEditor({ value, setValue, path, setPath }) {
+  const [form] = Form.useForm();
+  useEffect(() => {
+    form.setFieldsValue(value);
+  }, [form, value]);
+  
   return (
     <Form
       component={false}
       onValuesChange={(ch, all) => setValue(all)}
       initialValues={value}
+      name={path}
+      form={form}
     >
       <Form.Item name="type" label="Type">
         <RadioGroup
@@ -35,11 +43,17 @@ export default function QuestionEditor({ value, setValue, path, setPath }) {
           if (!type) {
             return null;
           }
-          return parseType(type).subtype === questionSubtypes.CHOICE ? (
-            <ChoiceQuestionEditorFragment path={path} setPath={setPath} />
-          ) : (
-            <YesNoQuestionEditorFragment path={path} setPath={setPath} />
-          );
+          const parsedType = parseType(type);
+          if (parsedType.subtype === questionSubtypes.CHOICE) {
+            return (
+              <ChoiceQuestionEditorFragment path={path} setPath={setPath} />
+            );
+          }
+          if (parsedType.subtype === questionSubtypes.YESNO) {
+            return (
+              <YesNoQuestionEditorFragment path={path} setPath={setPath} />
+            );
+          }
         }}
       </Form.Item>
     </Form>

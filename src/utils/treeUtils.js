@@ -26,7 +26,7 @@ export function getClickablePath(item, path, acc = [], pathAcc = []) {
       ? getClickablePath(
           getChild(item, path[0]),
           path,
-          [...acc, { text: item.text, path: pathAcc }],
+          [...acc, { text: item.text, path: pathAcc, showMenu: true }],
           [...pathAcc]
         )
       : getClickablePath(
