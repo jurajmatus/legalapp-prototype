@@ -1,17 +1,20 @@
-import { ArrowRightOutlined } from "@ant-design/icons";
-import { Form } from "antd";
+import NextStepButton from "./NextStepButton";
 
-export default function YesNoQuestionEditorFragment({ path, setPath }) {
+export default function YesNoQuestionEditorFragment({
+  value,
+  onChange,
+  path,
+  setPath,
+}) {
   return (
     <>
       <div>TODO: Documents</div>
-      <Form.Item noStyle shouldUpdate>
-        {(fm) => (
-          <ArrowRightOutlined
-            onClick={() => setPath([...path, fm.getFieldValue("text")])}
-          />
-        )}
-      </Form.Item>
+      <NextStepButton
+        value={value}
+        onChange={onChange}
+        path={path}
+        setPath={setPath}
+      />
     </>
   );
 }

@@ -1,27 +1,22 @@
-import { Form, Input } from "antd";
-import { useEffect } from "react";
+import { Input } from "antd";
 import { questionSubtypes, types } from "../constants/types";
+import { usePartialFormAccessors } from "../utils/formUtils";
 import { parseType } from "../utils/treeUtils";
 import ChoiceQuestionEditorFragment from "./ChoiceQuestionEditorFragment";
+import FormItem from "./form/FormItem";
 import { RadioGroup } from "./RadioGroup";
 import YesNoQuestionEditorFragment from "./YesNoQuestionEditorFragment";
 
-export default function QuestionEditor({ value, setValue, path, setPath }) {
-  const [form] = Form.useForm();
-  useEffect(() => {
-    form.setFieldsValue(value);
-  }, [form, value]);
-  
+export default function QuestionEditor({ value, onChange, path, setPath }) {
+  const { forPath } = usePartialFormAccessors({ value, onChange });
+  const type = value?.type && parseType(value.type);
+  const fragmentProps = { value, onChange, path, setPath };
+
   return (
-    <Form
-      component={false}
-      onValuesChange={(ch, all) => setValue(all)}
-      initialValues={value}
-      name={path}
-      form={form}
-    >
-      <Form.Item name="type" label="Type">
+    <>
+      <FormItem label="Type">
         <RadioGroup
+          {...forPath("type")}
           options={[
             {
               value: `${types.QUESTION}|${questionSubtypes.CHOICE}`,
@@ -33,29 +28,16 @@ export default function QuestionEditor({ value, setValue, path, setPath }) {
             },
           ]}
         />
-      </Form.Item>
-      <Form.Item name="text" label="Question text">
-        <Input />
-      </Form.Item>
-      <Form.Item noStyle shouldUpdate>
-        {(fm) => {
-          const type = fm.getFieldValue("type");
-          if (!type) {
-            return null;
-          }
-          const parsedType = parseType(type);
-          if (parsedType.subtype === questionSubtypes.CHOICE) {
-            return (
-              <ChoiceQuestionEditorFragment path={path} setPath={setPath} />
-            );
-          }
-          if (parsedType.subtype === questionSubtypes.YESNO) {
-            return (
-              <YesNoQuestionEditorFragment path={path} setPath={setPath} />
-            );
-          }
-        }}
-      </Form.Item>
-    </Form>
+      </FormItem>
+      <FormItem label="Question text">
+        <Input {...forPath("text")} />
+      </FormItem>
+      {type?.subtype === questionSubtypes.CHOICE && (
+        <ChoiceQuestionEditorFragment {...fragmentProps} />
+      )}
+      {type?.subtype === questionSubtypes.YESNO && (
+        <YesNoQuestionEditorFragment {...fragmentProps} />
+      )}
+    </>
   );
 }

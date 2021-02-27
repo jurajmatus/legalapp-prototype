@@ -1,90 +1,97 @@
-import { find, isArray, merge, property } from "lodash";
-import { types, questionSubtypes } from "../constants/types";
+import { findLast, flatten, get, range } from "lodash";
+import { questionSubtypes, types } from "../constants/types";
 
-export function getText(item) {
-  return item.text;
-}
-
-export function getParentItem(rootValue, path) {
-  let currentItem = rootValue;
-  let remainingPath = path;
-
-  while (remainingPath.length > 0) {
-    currentItem = getChild(currentItem, remainingPath[0]);
-    remainingPath = remainingPath.slice(1);
-  }
-  return currentItem;
-}
-
-export function getClickablePath(item, path, acc = [], pathAcc = []) {
-  if (path.length === 0) {
-    return acc;
-  }
+export function getNextStepLink(item, index) {
   const type = getType(item);
-  if (type.mainType === types.QUESTION) {
-    return type.subtype === questionSubtypes.CHOICE
-      ? getClickablePath(
-          getChild(item, path[0]),
-          path,
-          [...acc, { text: item.text, path: pathAcc, showMenu: true }],
-          [...pathAcc]
-        )
-      : getClickablePath(
-          item.nextStep,
-          path.slice(1),
-          [...acc, { text: item.text, path: pathAcc }],
-          [...pathAcc, path[0]]
+  if (type.mainType === types.ANSWER) {
+    return ["answers", index, "nextStep"];
+  }
+  if (
+    type.mainType === types.QUESTION &&
+    type.subtype === questionSubtypes.YESNO
+  ) {
+    return ["nextStep"];
+  }
+  return undefined;
+}
+
+export function isEditable(item) {
+  const type = getType(item);
+  return (
+    type === types.QUESTION ||
+    type === types.RESULT ||
+    type === types.CONDITIONAL
+  );
+}
+
+export function iteratePath(rootValue, path) {
+  return range(0, path.length)
+    .map((subpathLength) => {
+      const subpath = path.slice(0, subpathLength);
+      return {
+        subpath,
+        item: subpath.length === 0 ? rootValue : get(rootValue, subpath),
+      };
+    })
+    .filter(({ item }) => item?.type);
+}
+
+export function findClosest(rootValue, path, predicate) {
+  return findLast(iteratePath(rootValue, path), ({ item }) => predicate(item));
+}
+
+export function getClickablePath(rootValue, path) {
+  const linkableItems = iteratePath(rootValue, path);
+  const items = flatten(
+    linkableItems.map(({ subpath, item }) => {
+      const type = getType(item);
+      if (type.mainType === types.ANSWER) {
+        const { item: parentQuestion, subpath: parentPath } = findClosest(
+          rootValue,
+          subpath,
+          (par) => {
+            const parType = getType(par);
+            return (
+              parType.mainType === types.QUESTION &&
+              parType.subtype === questionSubtypes.CHOICE
+            );
+          }
         );
-  }
-  if (type.mainType === types.ANSWER) {
-    return getClickablePath(
-      item.nextStep,
-      path.slice(1),
-      [...acc, { text: item.text, path: pathAcc }],
-      [...pathAcc, path[0]]
-    );
-  }
-  return [];
-}
-
-export function copyItemWithChange(rootValue, path, value) {
-  if (path.length === 0) {
-    return value;
-  }
-  const copy = merge({}, rootValue);
-  const parentItem = getParentItem(copy, path);
-  parentItem.nextStep = value;
-  return copy;
-}
-
-export function getChild(item, text) {
-  const children = getChildren(item);
-  return find(children, (ch) => ch.text === text);
-}
-
-export function getChildren(item) {
-  if (isArray(item)) {
-    return item;
-  }
-  const type = getType(item);
-  if (type.mainType === types.QUESTION) {
-    return type.subtype === questionSubtypes.CHOICE ? item.answers : [item];
-  }
-  if (type.mainType === types.CONDITIONAL) {
-    return item.conditions.map(property("body"));
-  }
-  if (type.mainType === types.ANSWER) {
-    return [item.nextStep];
-  }
-  return [];
-}
-
-export function getParentPath(path) {
-  return path.slice(0, -1);
+        return [
+          {
+            text: parentQuestion.text,
+            link: parentPath,
+            children: (parentQuestion.answers || []).map((ans, i) => ({
+              text: ans.text,
+              link: [...parentPath, ...getNextStepLink(ans, i)],
+            })),
+          },
+          {
+            text: item.text,
+            link: parentPath,
+            nextStep: item.nextStep,
+          },
+        ];
+      }
+      if (
+        type.mainType === types.QUESTION &&
+        type.subtype === questionSubtypes.YESNO
+      ) {
+        return [{ text: item.text, link: subpath, nextStep: item.nextStep }];
+      }
+      return [];
+    })
+  );
+  return items.map(({ nextStep, ...rest }) => {
+    if (nextStep && getType(nextStep).mainType === types.CONDITIONAL) {
+      return { /*TODO*/ children: [], ...rest };
+    }
+    return rest;
+  });
 }
 
 export function parseType(type) {
-  const chunks = type.split(/\|/g);
+  const chunks = (type || "").split(/\|/g);
   return { mainType: chunks[0], subtype: chunks[1] };
 }
 

@@ -1,24 +1,18 @@
-import { Form } from "antd";
-import { useEffect } from "react";
+import { useState } from "react";
 import { types } from "../constants/types";
+import FormItem from "./form/FormItem";
 import QuestionEditor from "./QuestionEditor";
 import { RadioGroup } from "./RadioGroup";
 
-export default function NextStepEditor({ value, setValue, path, setPath }) {
-  const [form] = Form.useForm();
-  useEffect(() => {
-    form.setFieldsValue(value);
-  }, [form, value]);
-
+export default function NextStepEditor({ value, onChange, path, setPath }) {
+  const [type, setType] = useState(types.RESULT);
+  const fragmentProps = { value, onChange, path, setPath };
   return (
-    <Form
-      component={false}
-      onValuesChange={(ch, all) => setValue(all)}
-      form={form}
-      name={path}
-    >
-      <Form.Item name="nextStepType" label="Next step type">
+    <>
+      <FormItem label="Next step type">
         <RadioGroup
+          value={type}
+          onChange={setType}
           options={[
             {
               value: types.QUESTION,
@@ -34,29 +28,10 @@ export default function NextStepEditor({ value, setValue, path, setPath }) {
             },
           ]}
         />
-      </Form.Item>
-      <Form.Item noStyle shouldUpdate>
-        {(fm) => {
-          const type = fm.getFieldValue("nextStepType");
-          if (type === types.QUESTION) {
-            return (
-              <QuestionEditor
-                key={path}
-                value={value}
-                setValue={setValue}
-                path={path}
-                setPath={setPath}
-              />
-            );
-          }
-          if (type === types.CONDITIONAL) {
-            return "Conditional";
-          }
-          if (type === types.RESULT) {
-            return "Result";
-          }
-        }}
-      </Form.Item>
-    </Form>
+      </FormItem>
+      {type === types.QUESTION && <QuestionEditor {...fragmentProps} />}
+      {type === types.CONDITIONAL && "CONDITIONAL"}
+      {type === types.RESULT && "RESULT"}
+    </>
   );
 }

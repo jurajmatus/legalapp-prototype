@@ -1,6 +1,6 @@
 import { Divider } from "antd";
 import { useState } from "react";
-import { copyItemWithChange, getParentItem } from "../utils/treeUtils";
+import { makePartialFormAccessors } from "../utils/formUtils";
 import NextStepEditor from "./NextStepEditor";
 import QuestionEditor from "./QuestionEditor";
 import QuestionTreeNavigation from "./QuestionTreeNavigation";
@@ -9,33 +9,19 @@ export default function QuestionTreeBuilder() {
   const [path, setPath] = useState([]);
   const [value, setValue] = useState({ type: "question" });
 
-  console.log("ROOT VALUE", value);
-  const item = path.length === 0 ? value : getParentItem(value, path)?.nextStep;
-  console.log(`ITEM ('${path.join("/")}'): `, item);
+  const accessors = makePartialFormAccessors(path, {
+    value,
+    onChange: setValue,
+  });
+  console.log({ rootValue: value, path, item: accessors.value });
 
-  const setItem = (val) => setValue(copyItemWithChange(value, path, val));
+  const EditorComponent = path.length === 0 ? QuestionEditor : NextStepEditor;
 
   return (
     <div>
       <QuestionTreeNavigation path={path} setPath={setPath} rootValue={value} />
       <Divider type="horizontal" />
-      {path.length === 0 ? (
-        <QuestionEditor
-          key={path}
-          value={item}
-          setValue={setItem}
-          path={path}
-          setPath={setPath}
-        />
-      ) : (
-        <NextStepEditor
-          key={path}
-          value={item}
-          setValue={setItem}
-          path={path}
-          setPath={setPath}
-        />
-      )}
+      <EditorComponent path={path} setPath={setPath} {...accessors} />
     </div>
   );
 }
