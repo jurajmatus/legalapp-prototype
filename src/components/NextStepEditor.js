@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { DEFAULT_VALUES_BY_TYPE } from "../constants/defaultValues";
 import { types } from "../constants/types";
 import { getType } from "../utils/treeUtils";
+import ConditionalEditor from "./ConditionalEditor";
 import FormItem from "./form/FormItem";
 import QuestionEditor from "./QuestionEditor";
 import { RadioGroup } from "./RadioGroup";
@@ -50,7 +51,7 @@ export default function NextStepEditor({ value, onChange, path, setPath }) {
         />
       </FormItem>
       {type === types.QUESTION && <QuestionEditor {...fragmentProps} />}
-      {type === types.CONDITIONAL && "CONDITIONAL"}
+      {type === types.CONDITIONAL && <ConditionalEditor {...fragmentProps} />}
       {type === types.RESULT && <ResultEditor {...fragmentProps} />}
     </>
   );

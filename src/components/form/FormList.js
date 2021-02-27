@@ -30,7 +30,7 @@ export default function FormList({
   };
 
   return (
-    <div>
+    <div style={{ marginBottom: 20 }}>
       <div>
         <label>{label}</label>
       </div>
@@ -55,11 +55,13 @@ export default function FormList({
           </Col>
         </Row>
       ))}
-      <div>
-        <Button type="primary" onClick={() => add()}>
-          <PlusCircleOutlined />
-        </Button>
-      </div>
+      {!(value?.length > 0) && (
+        <div>
+          <Button type="primary" onClick={() => add()}>
+            <PlusCircleOutlined />
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

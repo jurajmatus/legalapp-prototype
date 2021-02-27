@@ -42,7 +42,7 @@ export function findClosest(rootValue, path, predicate) {
 
 export function getClickablePath(rootValue, path) {
   const linkableItems = iteratePath(rootValue, path);
-  const items = flatten(
+  return flatten(
     linkableItems.map(({ subpath, item }) => {
       const type = getType(item);
       if (type.mainType === types.ANSWER) {
@@ -72,7 +72,6 @@ export function getClickablePath(rootValue, path) {
               ...parentPath,
               ...getNextStepLink(item, findIndex(parentQuestion.answers, item)),
             ],
-            nextStep: item.nextStep,
           },
         ];
       }
@@ -80,17 +79,11 @@ export function getClickablePath(rootValue, path) {
         type.mainType === types.QUESTION &&
         type.subtype === questionSubtypes.YESNO
       ) {
-        return [{ text: item.text, link: subpath, nextStep: item.nextStep }];
+        return [{ text: item.text, link: subpath }];
       }
       return [];
     })
   );
-  return items.map(({ nextStep, ...rest }) => {
-    if (nextStep && getType(nextStep).mainType === types.CONDITIONAL) {
-      return { /*TODO*/ children: [], ...rest };
-    }
-    return rest;
-  });
 }
 
 export function parseType(type) {
