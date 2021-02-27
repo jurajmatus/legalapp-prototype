@@ -7,7 +7,6 @@ export default function QuestionTreeNavigation({
   rootValue,
 }) {
   const items = getClickablePath(rootValue, path);
-  console.log({ items });
   return (
     <Breadcrumb>
       <Breadcrumb.Item>

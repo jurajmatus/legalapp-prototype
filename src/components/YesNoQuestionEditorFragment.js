@@ -1,3 +1,5 @@
+import { usePartialFormAccessors } from "../utils/formUtils";
+import DocumentsFormItem from "./DocumentsFragment";
 import NextStepButton from "./NextStepButton";
 
 export default function YesNoQuestionEditorFragment({
@@ -6,9 +8,19 @@ export default function YesNoQuestionEditorFragment({
   path,
   setPath,
 }) {
+  const { forPath } = usePartialFormAccessors({ value, onChange });
+
   return (
     <>
-      <div>TODO: Documents</div>
+      <DocumentsFormItem
+        label="Documents (if yes)"
+        {...forPath("documentsIfYes")}
+      />
+      <DocumentsFormItem
+        label="Documents (if no)"
+        {...forPath("documentsIfNo")}
+      />
+      <div style={{ height: 20 }} />
       <NextStepButton
         value={value}
         onChange={onChange}

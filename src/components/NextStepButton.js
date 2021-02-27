@@ -18,7 +18,9 @@ export default function NextStepButton({
     <Button
       type="primary"
       onClick={() => {
-        initNextStep({});
+        if (!value) {
+          initNextStep({});
+        }
         setPath([...path, ...getNextStepLink(value, index)]);
       }}
     >

@@ -1,4 +1,4 @@
-import { findLast, flatten, get, range } from "lodash";
+import { findIndex, findLast, flatten, get, range } from "lodash";
 import { questionSubtypes, types } from "../constants/types";
 
 export function getNextStepLink(item, index) {
@@ -68,7 +68,10 @@ export function getClickablePath(rootValue, path) {
           },
           {
             text: item.text,
-            link: parentPath,
+            link: [
+              ...parentPath,
+              ...getNextStepLink(item, findIndex(parentQuestion.answers, item)),
+            ],
             nextStep: item.nextStep,
           },
         ];
